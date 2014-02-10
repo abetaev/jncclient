@@ -47,15 +47,18 @@ unzip -qq $TMP_FILE || die "Unable to unpack ncLinuxLauncher"
 echo "Copying files"
 cp -r $DIR/src $BUILD_DIR
 
-BUILD_SHARE_DIR=$BUILD_DIR/usr/share/jncclient
+BUILD_BIN_DIR=$BUILD_DIR/usr/sbin
 
-copy "$TMP_DIR/ncsvc"                 "$BUILD_SHARE_DIR"
-copy "$TMP_DIR/ncdiag"                "$BUILD_SHARE_DIR"
-copy "$TMP_DIR/getx509certificate.sh" "$BUILD_SHARE_DIR"
+mkdir -p $BUILD_BIN_DIR
 
+copy "$TMP_DIR/ncsvc"                 "$BUILD_BIN_DIR"
+copy "$TMP_DIR/ncdiag"                "$BUILD_BIN_DIR"
+copy "$TMP_DIR/getx509certificate.sh" "$BUILD_BIN_DIR"
+
+echo "Cleaning out temporary files..."
 rm -rf "$TMP_DIR"
 
+echo "Building deb..."
 cp -r $DIR/debian $BUILD_DIR/DEBIAN
-
 dpkg-deb -b "$BUILD_DIR" "$DIR/jncclient.deb"
 

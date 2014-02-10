@@ -1,11 +1,11 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          jncclient
+# Provides:          ncsvc
 # Required-Start:    $networking
 # Required-Stop:     $networking
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: JNC client connection to Juniper VPN
+# Short-Description: Client connection to Juniper VPN
 # Description:       This file should be used to construct scripts to be
 #                    placed in /etc/init.d.
 ### END INIT INFO
@@ -19,9 +19,9 @@
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="JNC client connection to Juniper VPN services"
-NAME=jncclient
-DAEMON=/usr/bin/jncclient
+DESC="Client connection to Juniper VPN services"
+NAME=ncsvc
+DAEMON=/usr/sbin/ncsvc
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -39,7 +39,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 # and status_of_proc is working.
 . /lib/lsb/init-functions
 
-DAEMON_ARGS="-h '$HOST' -u '$USER' -p '$PASSWORD' -r '$REALM'"
+DAEMON_ARGS="-h '$HOST' -u '$USER' -p '$PASSWORD' -f '$CERT' -r '$REALM'"
 
 #
 # Function that starts the daemon/service
