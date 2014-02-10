@@ -1,0 +1,8 @@
+Package: jncclient
+Version: 2.5
+Architecture: i386
+Maintainer: APT Development Team <deity@lists.debian.org>
+Installed-Size: 1300
+Depends: unzip(>=6.0)
+Priority: optional
+Description: JNC console client 

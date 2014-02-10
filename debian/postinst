@@ -1,0 +1,8 @@
+#!/bin/sh
+
+JNCCLIENT_HOME=/usr/share/jncclient
+
+chown root:root $JNCCLIENT_HOME/ncsvc
+chmod 6755 $JNCCLIENT_HOME/ncsvc
+chmod 755 $JNCCLIENT_HOME/ncdiag
+chmod 600 /etc/default/jncclient

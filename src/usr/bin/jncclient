@@ -1,0 +1,5 @@
+#!/bin/sh
+
+JNC_HOME=/usr/share/jnc
+
+$JNC_HOME/jnc $*
