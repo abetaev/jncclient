@@ -48,12 +48,13 @@ echo "Copying files"
 cp -r $DIR/src $BUILD_DIR
 
 BUILD_BIN_DIR=$BUILD_DIR/usr/sbin
+BUILD_SHARE_DIR=$BUILD_DIR/usr/share/jncclient
 
 mkdir -p $BUILD_BIN_DIR
 
-copy "$TMP_DIR/ncsvc"                 "$BUILD_BIN_DIR"
-copy "$TMP_DIR/ncdiag"                "$BUILD_BIN_DIR"
-copy "$TMP_DIR/getx509certificate.sh" "$BUILD_BIN_DIR"
+copy "$TMP_DIR/ncsvc"                 "$BUILD_SHARE_DIR"
+copy "$TMP_DIR/ncdiag"                "$BUILD_SHARE_DIR"
+copy "$TMP_DIR/getx509certificate.sh" "$BUILD_SHARE_DIR"
 
 echo "Cleaning out temporary files..."
 rm -rf "$TMP_DIR"

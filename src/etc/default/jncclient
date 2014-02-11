@@ -1,0 +1,22 @@
+HOST=
+USER=
+PASSWORD=
+REALM=
+#URL=
+#PORT=
+
+# Proxy configuration
+#PROXY=
+#PROXY_PORT=
+#PROXY_USER=
+#PROXY_PASSWORD=
+#PROXY_DOMAIN=
+
+# Logging
+#        0 : Log Critical messages only
+#        1 : Log Critital and Error messages
+#        2 : Log Critital, Error and Warning messages
+#        3 : Log Critital, Error, Warning and Info messages (default)
+#        4 : Log All Verbose messages
+#        5 : Log All messages
+LOG_LEVEL=0

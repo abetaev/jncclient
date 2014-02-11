@@ -1,0 +1,84 @@
+#!/bin/bash
+
+JNCCLIENT_HOME=/usr/share/jncclient
+NCSVC_CMD=$JNCCLIENT_HOME/ncsvc
+
+if [ ! `id -u` -eq 0 ]; then
+    echo Should be executed by root user
+    exit 0
+fi
+
+addarg() {
+    [ "$2" ] && ARGS="${ARGS} -$1 '$2'"
+}
+
+execute() {
+    su - -c "$*"
+}
+
+ARGS=""
+while getopts ":h:u:p:r:P:f:m:U:y:z:s:a:d:L:K:S:" VALUE; do
+    case "${VALUE}" in
+        h|host)
+            HOST="${OPTARG}"
+            addarg h "${OPTARG}"
+            ;;
+        u|user)
+            addarg u "${OPTARG}"
+            ;;
+        p|password)
+            addarg p "${OPTARG}"
+            ;;
+        r|realm)
+            addarg r "${OPTARG}"
+            ;;
+        P|port)
+            addarg p "${OPTARG}"
+            ;;
+        m|md5hash)
+            addarg m "${OPTARG}"
+            ;;
+        U|url)
+            addarg U "${OPTARG}"
+            ;;
+        y|proxy)
+            addarg y "${OPTARG}"
+            ;;
+        z|proxy-port)
+            addarg z "${OPTARG}"
+            ;;
+        s|proxy-user)
+            addarg s "${OPTARG}"
+            ;;
+        a|proxy-pass)
+            addarg a "${OPTARG}"
+            ;;
+        d|proxy-domain)
+            addarg d "${OPTARG}"
+            ;;
+        L|log-level)
+            addarg L "${OPTARG}"
+            ;;
+        K|kill)
+            execute "$NCSVC_CMD -K"
+            exit 0;
+            ;;
+        S|start-script)
+            START_SCRIPT="${OPTARG}"
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+execute "$JNCCLIENT_HOME/getx509certificate.sh $HOST $HOME/.cert.der 1> /dev/null 2> /dev/null"
+PID=`execute "$NCSVC_CMD $ARGS -f $HOME/.cert.der 1> /dev/null 2> /dev/null & echo "'$!'`
+echo $PID
+
+while [ ! `jncstatus tunnel` ]; do
+    sleep 1
+    if [ ! `jncstatus service` ]; then
+        exit 1
+    fi
+done
+
+#rm $HOME/.cert.der

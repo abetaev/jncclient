@@ -1,0 +1,17 @@
+#!/bin/sh
+
+JNCCLIENT_HOME=/usr/share/jncclient
+NCDIAG_CMD=$JNCCLIENT_HOME/ncdiag
+
+case "$1" in
+    "tunnel" )
+        $NCDIAG_CMD -t | grep -q Established;
+        ;;
+    "service" )
+        $NCDIAG_CMD -s | grep -q Running;
+        ;;
+    * )
+        echo "Syntax: `basename $0` <tunnel|service>"
+        exit 1
+        ;;
+esac
