@@ -4,6 +4,7 @@ JNCCLIENT_HOME=/usr/share/jncclient
 
 chown root:root $JNCCLIENT_HOME/ncsvc
 chown root:root /etc/default/jncclient
+chown -R root:root /etc/jncclient
 chmod 755 $JNCCLIENT_HOME/ncsvc
 chmod 755 $JNCCLIENT_HOME/ncdiag
 chmod 755 $JNCCLIENT_HOME/getx509certificate.sh

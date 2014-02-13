@@ -58,7 +58,7 @@ do_start()
     cd /tmp
 	$DAEMON -h "$HOST" -u "$USER" -p "$PASSWORD" -r "$REALM" -P "$PORT" -U "$URL" \
         -z "$PROXY" -z "$PROXY_START" -s "$PROXY_USER" -a "$PROXY_PASS" -d "$PROXY_DOMAIN" \
-        -L "$LOG_LEVEL" -S "$UP_SCRIPT" -E "${DOWN_SCRIPT}" > $PIDFILE
+        -L "$LOG_LEVEL" -S "${UP_SCRIPT}" -E "${DOWN_SCRIPT}" > $PIDFILE
 	# Add code here, if necessary, that waits for the process to be ready
 	# to handle requests from services started subsequently which depend
 	# on this one.  As a last resort, sleep for some time.
@@ -81,7 +81,7 @@ do_stop()
 	# that waits for the process to drop all resources that could be
 	# needed by services started subsequently.  A last resort is to
 	# sleep for some time.
-    $DAEMON -K ""
+    $DAEMON -K "" -E "${DOWN_SCRIPT}"
     RETVAL=$?
 	# Many daemons don't delete their pidfiles when they exit.
 	rm -f $PIDFILE

@@ -2,7 +2,8 @@ HOST=
 USER=
 PASSWORD=
 REALM=
-UP_SCRIPT=/usr/share/jncclient/up-default
+UP_SCRIPT=/etc/jncclient/up-default
+DOWN_SCRIPT=/etc/jncclient/down-default
 #URL=
 #PORT=
 
@@ -20,4 +21,4 @@ UP_SCRIPT=/usr/share/jncclient/up-default
 #        3 : Log Critital, Error, Warning and Info messages (default)
 #        4 : Log All Verbose messages
 #        5 : Log All messages
-LOG_LEVEL=0
+LOG_LEVEL=3

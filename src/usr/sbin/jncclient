@@ -17,7 +17,7 @@ execute() {
 }
 
 ARGS=""
-while getopts ":h:u:p:r:P:f:m:U:y:z:s:a:d:L:K:S:" VALUE; do
+while getopts ":h:u:p:r:P:f:m:U:y:z:s:a:d:L:K:S:E:" VALUE; do
     case "${VALUE}" in
         h|host)
             HOST="${OPTARG}"
@@ -73,23 +73,21 @@ done
 shift $((OPTIND-1))
 
 if [ "$KILL" = "1" ]; then
-    [ -x ${DOWN_SCRIPT} ] && $END_SCRIPT
+    [ -x ${DOWN_SCRIPT} ] && ${DOWN_SCRIPT}
     execute "$NCSVC_CMD -K"
     exit 0;
 fi
 
 execute "$JNCCLIENT_HOME/getx509certificate.sh $HOST /tmp/.cert.der 1> /dev/null 2> /dev/null"
-PID=`execute "LD_PRELOAD=/usr/local/lib/rtwrapper.so $NCSVC_CMD $ARGS -f /tmp/.cert.der 1> /dev/null 2> /dev/null & echo "'$!'`
+PID=`execute "LD_PRELOAD=/usr/lib/i386-linux-gnu/rtwrapper.so $NCSVC_CMD $ARGS -f /tmp/.cert.der 1> /dev/null 2> /dev/null & echo "'$!'`
 echo $PID
 
-while [ ! `jncstatus tunnel` ]; do
+while `jncstatus tunnel`; do
     sleep 1
-    if [ ! `jncstatus service` ]; then
-        exit 1
-    fi
+    jncstatus service || exit 1
 done
 
 rm /tmp/.cert.der
 
-[ -x ${UP_SCRIPT} ] && ${START_SCRIPT}
+[ -x ${UP_SCRIPT} ] && ${UP_SCRIPT}
 

@@ -47,10 +47,9 @@ unzip -qq $TMP_FILE || die "Unable to unpack ncLinuxLauncher"
 echo "Copying files"
 cp -r $DIR/src $BUILD_DIR
 
-BUILD_BIN_DIR=$BUILD_DIR/usr/sbin
 BUILD_SHARE_DIR=$BUILD_DIR/usr/share/jncclient
 
-mkdir -p $BUILD_BIN_DIR
+mkdir -p $BUILD_SHARE_DIR
 
 copy "$TMP_DIR/ncsvc"                 "$BUILD_SHARE_DIR"
 copy "$TMP_DIR/ncdiag"                "$BUILD_SHARE_DIR"
