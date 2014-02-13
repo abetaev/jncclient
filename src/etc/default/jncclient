@@ -2,6 +2,7 @@ HOST=
 USER=
 PASSWORD=
 REALM=
+UP_SCRIPT=/usr/share/jncclient/up-default
 #URL=
 #PORT=
 

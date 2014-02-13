@@ -1,2 +1,4 @@
 #!/bin/sh
 
+ip rule del from all to 192.168.0.0/16 lookup 128
+ip rule del from all to 167.235.0.0/16 lookup 128

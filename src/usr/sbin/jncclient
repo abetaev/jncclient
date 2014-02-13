@@ -60,18 +60,26 @@ while getopts ":h:u:p:r:P:f:m:U:y:z:s:a:d:L:K:S:" VALUE; do
             addarg L "${OPTARG}"
             ;;
         K|kill)
-            execute "$NCSVC_CMD -K"
-            exit 0;
+            KILL=1
             ;;
         S|start-script)
-            START_SCRIPT="${OPTARG}"
+            UP_SCRIPT="${OPTARG}"
+            ;;
+        E|end-script)
+            DOWN_SCRIPT="${OPTARG}"
             ;;
     esac
 done
 shift $((OPTIND-1))
 
-execute "$JNCCLIENT_HOME/getx509certificate.sh $HOST $HOME/.cert.der 1> /dev/null 2> /dev/null"
-PID=`execute "$NCSVC_CMD $ARGS -f $HOME/.cert.der 1> /dev/null 2> /dev/null & echo "'$!'`
+if [ "$KILL" = "1" ]; then
+    [ -x ${DOWN_SCRIPT} ] && $END_SCRIPT
+    execute "$NCSVC_CMD -K"
+    exit 0;
+fi
+
+execute "$JNCCLIENT_HOME/getx509certificate.sh $HOST /tmp/.cert.der 1> /dev/null 2> /dev/null"
+PID=`execute "LD_PRELOAD=/usr/local/lib/rtwrapper.so $NCSVC_CMD $ARGS -f /tmp/.cert.der 1> /dev/null 2> /dev/null & echo "'$!'`
 echo $PID
 
 while [ ! `jncstatus tunnel` ]; do
@@ -81,4 +89,7 @@ while [ ! `jncstatus tunnel` ]; do
     fi
 done
 
-#rm $HOME/.cert.der
+rm /tmp/.cert.der
+
+[ -x ${UP_SCRIPT} ] && ${START_SCRIPT}
+

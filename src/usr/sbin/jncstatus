@@ -8,10 +8,13 @@ case "$1" in
         $NCDIAG_CMD -t | grep -q Established;
         ;;
     "service" )
-        $NCDIAG_CMD -s | grep -q Running;
+        ps -C ncsvc > /dev/null
+        ;;
+    "dhcp" )
+        [ `ip link | grep -E 'tun[0-9]*:' | wc -l ` -ge 1 ]
         ;;
     * )
-        echo "Syntax: `basename $0` <tunnel|service>"
+        echo "Syntax: `basename $0` <tunnel|service|dhcp>"
         exit 1
         ;;
 esac
