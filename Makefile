@@ -2,12 +2,12 @@ all: ncsvc-wrapper.so
 
 CFLAGS = -fPIC -std=c99 -m32
 LDFLAGS = -shared -m32
-LIBS=-ldl
+LIBS=-L/usr/lib32 -ldl -lc_nonshared -lm
 
 ncsvc-wrapper.so: ncsvc-wrapper.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-ncsvc-wrapper.o: ncsvc-wrapper.c
+ncsvc-wrapper: ncsvc-wrapper.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS)
 
 clean:

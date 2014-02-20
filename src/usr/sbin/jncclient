@@ -16,8 +16,18 @@ execute() {
     su - -c "$*"
 }
 
+do_start() {
+	execute "$JNCCLIENT_HOME/getx509certificate.sh $HOST /tmp/.cert.der 1> /dev/null 2> /dev/null"
+	PID=`execute "LD_PRELOAD=/usr/lib/i386-linux-gnu/rtwrapper.so $NCSVC_CMD $ARGS -f /tmp/.cert.der 1> /dev/null 2> /dev/null & echo "'$!'`
+}
+
+do_stop() {
+    [ -x ${DOWN_SCRIPT} ] && ${DOWN_SCRIPT}
+    execute "$NCSVC_CMD -K"
+}
+
 ARGS=""
-while getopts ":h:u:p:r:P:f:m:U:y:z:s:a:d:L:K:S:E:" VALUE; do
+while getopts ":h:u:p:r:P:f:m:U:y:z:s:a:d:L:KS:E:" VALUE; do
     case "${VALUE}" in
         h|host)
             HOST="${OPTARG}"
@@ -73,13 +83,13 @@ done
 shift $((OPTIND-1))
 
 if [ "$KILL" = "1" ]; then
-    [ -x ${DOWN_SCRIPT} ] && ${DOWN_SCRIPT}
-    execute "$NCSVC_CMD -K"
-    exit 0;
+	do_stop
+else
+	do_start
+
 fi
 
-execute "$JNCCLIENT_HOME/getx509certificate.sh $HOST /tmp/.cert.der 1> /dev/null 2> /dev/null"
-PID=`execute "LD_PRELOAD=/usr/lib/i386-linux-gnu/rtwrapper.so $NCSVC_CMD $ARGS -f /tmp/.cert.der 1> /dev/null 2> /dev/null & echo "'$!'`
+
 echo $PID
 
 while `jncstatus tunnel`; do
