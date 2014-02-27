@@ -4,10 +4,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-#include <signal.h>
 #include <libnetlink.h>
-
-#include <dlfcn.h>
 
 #include <net/route.h>
 #include <netinet/in.h>
@@ -20,8 +17,6 @@
 #include "ll_map.h"
 
 #include "jncclient.h"
-
-static int (*ioctl_next)(int, unsigned long, void*);
 
 void init() __attribute__((constructor));
 
