@@ -1,14 +1,11 @@
-all: ncsvcwrapper.so
+all: ncsvc-wrapper.so
 
 CFLAGS = -fPIC -std=c99 -m32
 LDFLAGS = -shared -m32
-LIBS=-L/usr/lib32 -ldl -lc -lm
+LIBS=-L/usr/lib32 -ldl -lc -lm -lnetlink
 
-ncsvcwrapper.so: ncsvcwrapper.o
+ncsvc-wrapper.so: ncsvc-wrapper.o ll_map.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
-
-ncsvcwrapper: ncsvcwrapper.c rtwrapper.c logwrapper.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS)
 
 clean:
 	$(RM) *.o *.so
