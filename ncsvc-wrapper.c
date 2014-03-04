@@ -209,22 +209,34 @@ int main_wrap(int argc, char * *argv, char * *envp) {
         }
     }
 
-    optind --;
+    int optoff = optind - 1;
+    argv[optoff] = argv[0];
+    optind = 0;
+
+    puts("args:");
+    for (int i = 0; i < argc - optoff; i ++) {
+        puts(argv[i + optoff]);
+    }
+    puts("---");
 
     int result = 0;
     if (up_script != NULL) {
         if(result = system(up_script)) {
             puts("Up script returned error");
             exit(result);
+        } else {
+            puts("Up script: OK");
         }
     }
 
-    result = main_orig(argc - optind, argv + optind, envp);
+    result = main_orig(argc - optoff, argv + optoff, envp);
 
     if (down_script != NULL) {
         if(result = system(down_script)) {
             puts("Down script returned error");
             exit(result);
+        } else {
+            puts("Down script: OK");
         }
     }
 
