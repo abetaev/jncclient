@@ -1,11 +1,14 @@
 #define _GNU_SOURCE
 
 #include <unistd.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <fcntl.h>
+
 #include <sys/types.h>
-#include <asm/stat.h>
+#include <sys/stat.h>
 #include <dlfcn.h>
 #include <string.h>
 #include <signal.h>
@@ -17,7 +20,6 @@
 #include <linux/in_route.h>
 #include <linux/sockios.h>
 #include <linux/socket.h>
-#include <dlfcn.h>
 #include <libnetlink.h>
 
 #include "ll_map.h"
@@ -44,7 +46,14 @@ static struct rtnl_handle rth;
 void init() __attribute__((constructor));
 void fini() __attribute__((destructor));
 
-int open(const char *pathname, int flags) {
+static const char * routes_file = "/tmp/jncclient_proc_net_route";
+
+int open(const char *pathname, int flags, ...) {
+    printf("open: %s\n", pathname);
+    if (!strcmp(pathname, "/proc/net/route")) {
+        puts("Requestes /proc/net/route file open");
+        return open_next(routes_file, flags);
+    }
     if (!strcmp(pathname, original_log_file_name)) {
         // open for log file returns fake descriptor for further handling
         return log_fd;
@@ -94,6 +103,10 @@ struct rta_addr {
 	__u32 addr[8];
 	int len;
 };
+
+int sockaddr2int(struct sockaddr * sa) {
+    return ((struct sockaddr_in *) sa)->sin_addr.s_addr;
+}
 
 void sockaddr2rta(struct rta_addr * rta, struct sockaddr * sa) {
 	struct sockaddr_in * sa_in = (struct sockaddr_in *) sa;
@@ -168,9 +181,29 @@ int route_modify(int cmd, int flags, struct rtentry *rte) {
     return 0;
 }
 
+static void append_route(struct rtentry *rte) {
+    FILE *f = fopen(routes_file, "a");
+    if (f == NULL) {
+        puts("Unable to open routes file");
+        exit(1);
+    }
+    char buf[1024];
+    sprintf(buf, "%s\t%0.8X\t%0.8X\t%0.4X\t0\t0\t%i\t%0.8X\t0\t0\t0\n", 
+            rte->rt_dev == NULL ? "" : rte->rt_dev, 
+            sockaddr2int(&(rte->rt_dst)), 
+            sockaddr2int(&(rte->rt_gateway)),
+            rte->rt_flags, 
+            rte->rt_metric, 
+            sockaddr2int(&(rte->rt_genmask)));
+    fputs(buf, f);
+    puts(buf);
+    fclose(f);
+}
+
 int ioctl(int fd, unsigned long request, void *arg) {
 	switch (request) {
 	case SIOCADDRT:
+        append_route(arg);
 		return route_modify(RTM_NEWROUTE, NLM_F_CREATE|NLM_F_EXCL, arg);
 	case SIOCDELRT:
 		return route_modify(RTM_DELROUTE, 0, arg);
@@ -212,12 +245,6 @@ int main_wrap(int argc, char * *argv, char * *envp) {
     int optoff = optind - 1;
     argv[optoff] = argv[0];
     optind = 0;
-
-    puts("args:");
-    for (int i = 0; i < argc - optoff; i ++) {
-        puts(argv[i + optoff]);
-    }
-    puts("---");
 
     int result = 0;
     if (up_script != NULL) {
@@ -268,6 +295,13 @@ void init() {
 		exit(1);
 	}
 
+    FILE *f = fopen(routes_file, "w");
+    if (f == NULL) {
+        puts("Unable to open routes file");
+        exit(1);
+    }
+    fputs("Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\tMTU\tWindow\tIRTT\n", f); 
+    fclose(f);
 }
 
 void fini() {

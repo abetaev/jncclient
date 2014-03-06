@@ -1,103 +1,13 @@
 #!/bin/bash
 
 JNCCLIENT_HOME=/usr/share/jncclient
-NCSVC_CMD=$JNCCLIENT_HOME/ncsvc
 
-if [ ! `id -u` -eq 0 ]; then
-    echo Should be executed by root user
-    exit 0
-fi
-
-addarg() {
-    [ "$2" ] && ARGS="${ARGS} -$1 '$2'"
-}
-
-execute() {
-    su - -c "$*"
-}
-
-do_start() {
-	execute "$JNCCLIENT_HOME/getx509certificate.sh $HOST /tmp/.cert.der 1> /dev/null 2> /dev/null"
-	PID=`execute "LD_PRELOAD=/usr/lib/i386-linux-gnu/rtwrapper.so $NCSVC_CMD $ARGS -f /tmp/.cert.der 1> /dev/null 2> /dev/null & echo "'$!'`
-}
-
-do_stop() {
-    [ -x ${DOWN_SCRIPT} ] && ${DOWN_SCRIPT}
-    execute "$NCSVC_CMD -K"
-}
-
-ARGS=""
-while getopts ":h:u:p:r:P:f:m:U:y:z:s:a:d:L:KS:E:" VALUE; do
-    case "${VALUE}" in
-        h|host)
-            HOST="${OPTARG}"
-            addarg h "${OPTARG}"
-            ;;
-        u|user)
-            addarg u "${OPTARG}"
-            ;;
-        p|password)
-            addarg p "${OPTARG}"
-            ;;
-        r|realm)
-            addarg r "${OPTARG}"
-            ;;
-        P|port)
-            addarg p "${OPTARG}"
-            ;;
-        m|md5hash)
-            addarg m "${OPTARG}"
-            ;;
-        U|url)
-            addarg U "${OPTARG}"
-            ;;
-        y|proxy)
-            addarg y "${OPTARG}"
-            ;;
-        z|proxy-port)
-            addarg z "${OPTARG}"
-            ;;
-        s|proxy-user)
-            addarg s "${OPTARG}"
-            ;;
-        a|proxy-pass)
-            addarg a "${OPTARG}"
-            ;;
-        d|proxy-domain)
-            addarg d "${OPTARG}"
-            ;;
-        L|log-level)
-            addarg L "${OPTARG}"
-            ;;
-        K|kill)
-            KILL=1
-            ;;
-        S|start-script)
-            UP_SCRIPT="${OPTARG}"
-            ;;
-        E|end-script)
-            DOWN_SCRIPT="${OPTARG}"
-            ;;
+while getopts h: f; do
+    case f in
+        h) HOST=$OPTARG ;;
     esac
 done
-shift $((OPTIND-1))
 
-if [ "$KILL" = "1" ]; then
-	do_stop
-else
-	do_start
-
-fi
-
-
-echo $PID
-
-while `jncstatus tunnel`; do
-    sleep 1
-    jncstatus service || exit 1
-done
-
-rm /tmp/.cert.der
-
-[ -x ${UP_SCRIPT} ] && ${UP_SCRIPT}
-
+$JNCCLIENT_HOME/getx509certificate.sh $HOST /tmp/.cert.der 1>> /tmp/jncclient.log 2>> /tmp/jncclient.err
+NCSVC_CMD=$JNCCLIENT_HOME/ncsvc
+LD_PRELOAD=/usr/share/jncclient/ncsvc-wrapper.so $NCSVC_CMD $* -f /tmp/.cert.der 1>> /tmp/jncclient.log 2>> /tmp/jncclient.err

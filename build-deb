@@ -30,6 +30,10 @@ if [ ! -f "$FILE" ]; then
     die "Syntax $NAME <absolute path to ncLinuxApp.jar>"
 fi
 
+cd $DIR
+
+make clean all
+
 mkdir -p "$TMP_DIR"
 
 cd $TMP_DIR
@@ -54,6 +58,7 @@ mkdir -p $BUILD_SHARE_DIR
 copy "$TMP_DIR/ncsvc"                 "$BUILD_SHARE_DIR"
 copy "$TMP_DIR/ncdiag"                "$BUILD_SHARE_DIR"
 copy "$TMP_DIR/getx509certificate.sh" "$BUILD_SHARE_DIR"
+copy "$DIR/ncsvc-wrapper.so"          "$BUILD_SHARE_DIR"
 
 echo "Cleaning out temporary files..."
 rm -rf "$TMP_DIR"
