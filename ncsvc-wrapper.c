@@ -33,7 +33,7 @@ static ssize_t (* write_next)(int fd, const void *buf, size_t count);
 static int (* __xstat_next)(int ver, const char *, struct stat *);
 static int (* __fxstat_next)(int ver, int, struct stat *);
 static int (*ioctl_next)(int, unsigned long, void*);
-static int (* __libc_start_main_next)(int (*main) (int, char * *, char * *), int argc, char * * ubp_av, void (*init) (void), void (*fini) (void), void (*rtld_fini) (void), void (* stack_end));
+static int (* __libc_start_main_next)(int (*main)(int, char **, char **), int argc, char ** ubp_av, void (*init) (void), void (*fini) (void), void (*rtld_fini) (void), void (* stack_end));
 
 int (* main_orig)(int, char **, char **);
 
