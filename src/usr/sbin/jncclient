@@ -3,24 +3,10 @@
 JNCCLIENT_HOME=/usr/share/jncclient
 NCSVC_CMD=$JNCCLIENT_HOME/ncsvc
 
-while getopts h:K f; do
-    case $f in
-        h) HOST=$OPTARG ;;
-        K) KILL=1       ;;
-    esac
+while [ "${1}" ]; do
+	ARGS="$ARGS '${1}'"
+	shift
 done
 
-shift `expr $OPTIND - 1`
-
-if [ $KILL ]; then
-    $NCSVC_CMD -- -K
-elif [ -n $HOST ]; then
-    $JNCCLIENT_HOME/getx509certificate.sh $HOST /tmp/.cert.der
-    if [ ! -f /tmp/.cert.der ]; then
-        echo "Unable to get certificate for $HOST"
-        exit 1
-    fi
-    export LD_PRELOAD=/usr/share/jncclient/ncsvc-wrapper.so
-    $NCSVC_CMD $* -f /tmp/.cert.der -h $HOST
-fi
-
+export LD_PRELOAD=/usr/share/jncclient/ncsvc-wrapper.so
+eval ${NCSVC_CMD} ${ARGS}

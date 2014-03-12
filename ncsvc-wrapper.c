@@ -49,9 +49,7 @@ void fini() __attribute__((destructor));
 static const char * routes_file = "/tmp/jncclient_proc_net_route";
 
 int open(const char *pathname, int flags, ...) {
-    printf("open: %s\n", pathname);
     if (!strcmp(pathname, "/proc/net/route")) {
-        puts("Requestes /proc/net/route file open");
         return open_next(routes_file, flags);
     }
     if (!strcmp(pathname, original_log_file_name)) {
@@ -130,6 +128,25 @@ __u8 sockaddr2len(struct sockaddr * sa) {
 struct rtentry rtentries[100];
 int rtentries_number = 0;
 
+static void append_route(struct rtentry *rte) {
+    FILE *f = fopen(routes_file, "a");
+    if (f == NULL) {
+        puts("Unable to open routes file");
+        exit(1);
+    }
+    char buf[1024];
+    sprintf(buf, "%s\t%0.8X\t%0.8X\t%0.4X\t0\t0\t%i\t%0.8X\t0\t0\t0\n", 
+            rte->rt_dev == NULL ? "" : rte->rt_dev, 
+            sockaddr2int(&(rte->rt_dst)), 
+            sockaddr2int(&(rte->rt_gateway)),
+            rte->rt_flags, 
+            rte->rt_metric, 
+            sockaddr2int(&(rte->rt_genmask)));
+    fputs(buf, f);
+    puts(buf);
+    fclose(f);
+}
+
 int route_modify(int cmd, int flags, struct rtentry *rte) {
 
     for (int i = 0; i < rtentries_number; i ++) {
@@ -137,6 +154,8 @@ int route_modify(int cmd, int flags, struct rtentry *rte) {
             return 0;
         }
     }
+
+    append_route(rte);
 
     memcpy(rtentries + rtentries_number, rte, sizeof (struct rtentry));
     rtentries_number ++;
@@ -181,29 +200,9 @@ int route_modify(int cmd, int flags, struct rtentry *rte) {
     return 0;
 }
 
-static void append_route(struct rtentry *rte) {
-    FILE *f = fopen(routes_file, "a");
-    if (f == NULL) {
-        puts("Unable to open routes file");
-        exit(1);
-    }
-    char buf[1024];
-    sprintf(buf, "%s\t%0.8X\t%0.8X\t%0.4X\t0\t0\t%i\t%0.8X\t0\t0\t0\n", 
-            rte->rt_dev == NULL ? "" : rte->rt_dev, 
-            sockaddr2int(&(rte->rt_dst)), 
-            sockaddr2int(&(rte->rt_gateway)),
-            rte->rt_flags, 
-            rte->rt_metric, 
-            sockaddr2int(&(rte->rt_genmask)));
-    fputs(buf, f);
-    puts(buf);
-    fclose(f);
-}
-
 int ioctl(int fd, unsigned long request, void *arg) {
 	switch (request) {
 	case SIOCADDRT:
-        append_route(arg);
 		return route_modify(RTM_NEWROUTE, NLM_F_CREATE|NLM_F_EXCL, arg);
 	case SIOCDELRT:
 		return route_modify(RTM_DELROUTE, 0, arg);
@@ -228,6 +227,7 @@ int main_wrap(int argc, char * *argv, char * *envp) {
     char * down_script = NULL;
 
     int opt;
+
     while ((opt = getopt(argc, argv, "u:d:l:")) != -1) {
         switch (opt) {
             case 'u':
