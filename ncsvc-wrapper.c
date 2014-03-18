@@ -54,7 +54,6 @@ int open(const char *pathname, int flags, ...) {
     }
     if (!strcmp(pathname, original_log_file_name)) {
         // open for log file returns fake descriptor for further handling
-        return (log_fd = open("/tmp/ncsvc.log", flags));
         return log_fd;
     }
     return open_next(pathname, flags);
@@ -90,7 +89,7 @@ int mkdir(const char *pathname, mode_t mode) {
 }
 
 ssize_t write(int fd, const void *buf, size_t count) {
-//    if (fd == log_fd || fd == 0 || fd == 1) {
+//    if (fd == log_fd) {
         // redirect log output to stdout
         // TODO add options to use sysctl and stderr
 //        return write_next(0, buf, count);
@@ -298,8 +297,11 @@ void init() {
     }
     fputs("Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\tMTU\tWindow\tIRTT\n", f); 
     fclose(f);
+    log_fd = open("/tmp/ncsvc.log", O_CREAT | O_WRONLY);
 }
 
 void fini() {
+    close(log_fd);
     rtnl_close(&rth);
 }
+
