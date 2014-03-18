@@ -4,6 +4,7 @@ PASSWORD=
 REALM=
 UP_SCRIPT=/etc/jncclient/up-default
 DOWN_SCRIPT=/etc/jncclient/down-default
+CERT=/etc/jncclient/default.der
 #URL=
 #PORT=
 

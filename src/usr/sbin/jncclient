@@ -8,5 +8,14 @@ while [ "${1}" ]; do
 	shift
 done
 
+do_term() {
+    echo "Terminating..."
+    ${NCSVC_CMD} -- -K
+    exit 0
+}
+
+trap 'do_term' TERM
+
 export LD_PRELOAD=/usr/share/jncclient/ncsvc-wrapper.so
+
 eval ${NCSVC_CMD} ${ARGS}

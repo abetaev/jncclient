@@ -1,11 +1,11 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          jncclient
-# Required-Start:    $networking
-# Required-Stop:     $networking
+# Provides:          skeleton
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Client connection to Juniper VPN
+# Short-Description: Example initscript
 # Description:       This file should be used to construct scripts to be
 #                    placed in /etc/init.d.
 ### END INIT INFO
@@ -19,9 +19,9 @@
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="Client connection to Juniper VPN services"
+DESC="Description of the service"
 NAME=jncclient
-DAEMON=/usr/sbin/jncclient
+DAEMON=/usr/sbin/$NAME
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -39,29 +39,44 @@ SCRIPTNAME=/etc/init.d/$NAME
 # and status_of_proc is working.
 . /lib/lsb/init-functions
 
-PID=`cat "$PIDFILE" 2> /dev/null`
-
-status() {
-    ps -C ncsvc 1> /dev/null 2> /dev/null
-}
-
 #
 # Function that starts the daemon/service
 #
+# Return
+#   0 if daemon has been started
+#   1 if daemon was already running
+#   2 if daemon could not be started
 do_start()
 {
-	# Return
-	#   0 if daemon has been started
-	#   1 if daemon was already running
-	#   2 if daemon could not be started
-    status && return 1
-    cd /tmp
-	$DAEMON -h "$HOST" -u "$USER" -p "$PASSWORD" -r "$REALM" -P "$PORT" -U "$URL" \
-        -z "$PROXY" -z "$PROXY_START" -s "$PROXY_USER" -a "$PROXY_PASS" -d "$PROXY_DOMAIN" \
-        -L "$LOG_LEVEL" -S "${UP_SCRIPT}" -E "${DOWN_SCRIPT}" > $PIDFILE
-	# Add code here, if necessary, that waits for the process to be ready
-	# to handle requests from services started subsequently which depend
-	# on this one.  As a last resort, sleep for some time.
+    if [ "$HOST" ]; then
+        NCSVC_ARGS="$NCSVC_ARGS -h '$HOST'"
+    fi
+    if [ "$CERT" ]; then
+        NCSVC_ARGS="$NCSVC_ARGS -f '$CERT'"
+    fi
+    if [ "$USER" ]; then
+        NCSVC_ARGS="$NCSVC_ARGS -u '$USER'"
+    fi
+    if [ "$PASSWORD" ]; then
+        NCSVC_ARGS="$NCSVC_ARGS -p '$PASSWORD'"
+    fi
+    if [ "$REALM" ]; then
+        NCSVC_ARGS="$NCSVC_ARGS -r '$REALM'"
+    fi
+    if [ "$URL" ]; then
+        NCSVC_ARGS="$NCSVC_ARGS -u '$URL'"
+    fi
+    if [ "$LOG_LEVEL" ]; then
+        NCSVC_ARGS="$NCSVC_ARGS -l '$LOG_LEVEL'"
+    fi
+    if [ "$UP_SCRIPT" ]; then
+        WRAPPER_ARGS="$WRAPPER_ARGS -u '$UP_SCRIPT'"
+    fi
+    if [ "$DOWN_SCRIPT" ]; then
+        WRAPPER_ARGS="$WRAPPER_ARGS -d '$DOWN_SCRIPT'"
+    fi
+
+    su -c "jncclient $WRAPPER_ARGS -- $NCSVC_ARGS" 1> /tmp/jncclient.log 2> /tmp/jncclient.err &
 }
 
 #
@@ -69,23 +84,7 @@ do_start()
 #
 do_stop()
 {
-	# Return
-	#   0 if daemon has been stopped
-	#   1 if daemon was already stopped
-	#   2 if daemon could not be stopped
-	#   other if a failure occurred
-    status || return 1
-	# Wait for children to finish too if this is a daemon that forks
-	# and if the daemon is only ever run from this initscript.
-	# If the above conditions are not satisfied then add some other code
-	# that waits for the process to drop all resources that could be
-	# needed by services started subsequently.  A last resort is to
-	# sleep for some time.
-    $DAEMON -K "" -E "${DOWN_SCRIPT}"
-    RETVAL=$?
-	# Many daemons don't delete their pidfiles when they exit.
-	rm -f $PIDFILE
-	return "$RETVAL"
+	su -c "jncclient -- -K" 1>> /tmp/jncclient.log 2>> /tmp/jncclient.err
 }
 
 case "$1" in
@@ -105,10 +104,7 @@ case "$1" in
 		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
 	esac
 	;;
-  status)
-    status || exit 0 || exit $?
-	;;
-  restart|force-reload)
+  restart)
 	#
 	# If the "reload" option is implemented then remove the
 	# 'force-reload' alias
@@ -131,7 +127,7 @@ case "$1" in
 	esac
 	;;
   *)
-	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+	echo "Usage: $SCRIPTNAME {start|stop|restart}" >&2
 	exit 3
 	;;
 esac

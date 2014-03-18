@@ -39,7 +39,7 @@ int (* main_orig)(int, char **, char **);
 
 static const char * original_log_file_name;
 
-static const int log_fd = 0xFFFFFF;
+static int log_fd = 0xFFFFFF;
 
 static struct rtnl_handle rth;
 
@@ -54,6 +54,7 @@ int open(const char *pathname, int flags, ...) {
     }
     if (!strcmp(pathname, original_log_file_name)) {
         // open for log file returns fake descriptor for further handling
+        return (log_fd = open("/tmp/ncsvc.log", flags));
         return log_fd;
     }
     return open_next(pathname, flags);
@@ -68,7 +69,7 @@ int chown(const char *path, uid_t owner, gid_t group) {
 }
 
 int __xstat(int ver, const char *pathname, struct stat *buf) {
-    if (strstr(original_log_file_name, pathname) != NULL) {
+    if (!strcmp(original_log_file_name, pathname)) {
         // stat for log file will only returns success
         return 0;
     }
@@ -89,11 +90,11 @@ int mkdir(const char *pathname, mode_t mode) {
 }
 
 ssize_t write(int fd, const void *buf, size_t count) {
-    if (fd == log_fd) {
+//    if (fd == log_fd || fd == 0 || fd == 1) {
         // redirect log output to stdout
         // TODO add options to use sysctl and stderr
-        return write_next(0, buf, count);
-    }
+//        return write_next(0, buf, count);
+//    }
     return write_next(fd, buf, count);
 }
 
@@ -143,7 +144,6 @@ static void append_route(struct rtentry *rte) {
             rte->rt_metric, 
             sockaddr2int(&(rte->rt_genmask)));
     fputs(buf, f);
-    puts(buf);
     fclose(f);
 }
 
@@ -251,8 +251,6 @@ int main_wrap(int argc, char * *argv, char * *envp) {
         if(result = system(up_script)) {
             puts("Up script returned error");
             exit(result);
-        } else {
-            puts("Up script: OK");
         }
     }
 
@@ -262,8 +260,6 @@ int main_wrap(int argc, char * *argv, char * *envp) {
         if(result = system(down_script)) {
             puts("Down script returned error");
             exit(result);
-        } else {
-            puts("Down script: OK");
         }
     }
 
