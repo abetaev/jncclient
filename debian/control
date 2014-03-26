@@ -3,6 +3,5 @@ Version: 1.1
 Architecture: i386
 Maintainer: APT Development Team <deity@lists.debian.org>
 Installed-Size: 1300
-Depends: rtwrapper(>=1.0)
 Priority: optional
 Description: JNC console client and service
